@@ -1,0 +1,5 @@
+.ddev
+.editorconfig
+recipes/
+vendor/
+web/
