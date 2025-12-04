@@ -3,34 +3,29 @@ version: "3.9"
 services:
   drupal:
     image: drupal:11-fpm
-    container_name: drupal
-    restart: always
+    environment:
+      PHP_MEMORY_LIMIT: 512M
     volumes:
       - drupal_data:/var/www/html
     depends_on:
       - db
 
   nginx:
-    build:
-      context: .
-    container_name: drupal_nginx
-    restart: always
+    image: nginx:stable
+    volumes:
+      - drupal_data:/var/www/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - drupal
     labels:
-      # Traefik settings
       - "traefik.enable=true"
-      - "traefik.http.routers.drupal.rule=Host(`example.com`)"  # replace with your domain
+      - "traefik.http.routers.drupal.rule=Host(`example.com`)" # replace with your domain
       - "traefik.http.routers.drupal.entrypoints=websecure"
       - "traefik.http.routers.drupal.tls=true"
       - "traefik.http.services.drupal.loadbalancer.server.port=80"
-    volumes:
-      - drupal_data:/var/www/html:ro
-    depends_on:
-      - drupal
 
   db:
     image: mariadb:10.6
-    container_name: drupal_db
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
       MYSQL_DATABASE: drupal
