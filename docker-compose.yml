@@ -10,7 +10,7 @@ services:
     depends_on:
       - db
 
-  nginx:
+  nginx: 
     image: nginx:stable
     volumes:
       - drupal_data:/var/www/html:ro
@@ -19,10 +19,28 @@ services:
       - drupal
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.drupal.rule=Host(`example.com`)" # replace with your domain
+      
+      # HTTP Router (redirect to HTTPS)
+      - "traefik.http.routers.drupal-http.rule=Host(`chattanooga.digital`) && PathPrefix(`/eduityblog`)"
+      - "traefik.http.routers.drupal-http.entrypoints=web"
+      - "traefik.http.routers.drupal-http.middlewares=redirect-to-https"
+      
+      # HTTPS Router
+      - "traefik.http.routers.drupal.rule=Host(`chattanooga.digital`) && PathPrefix(`/eduityblog`)"
       - "traefik.http.routers.drupal.entrypoints=websecure"
       - "traefik.http.routers.drupal.tls=true"
+      - "traefik.http.routers.drupal.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.drupal.middlewares=drupal-stripprefix"
+      
+      # Service
       - "traefik.http.services.drupal.loadbalancer.server.port=80"
+      
+      # Middlewares
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+      - "traefik.http.middlewares.drupal-stripprefix.stripprefix.prefixes=/eduityblog"
+    networks:
+      - traefik  # Make sure this network exists
 
   db:
     image: mariadb:10.6
@@ -38,3 +56,6 @@ volumes:
   drupal_data:
   db_data:
 
+networks:
+  traefik:
+    external: true
