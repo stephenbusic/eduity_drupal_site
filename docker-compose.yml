@@ -7,6 +7,7 @@ services:
       PHP_MEMORY_LIMIT: 512M
     volumes:
       - drupal_data:/var/www/html
+      - ./config/settings.local.php:/var/www/html/web/sites/default/settings.local.php:ro
     depends_on:
       - db
 
