@@ -1,18 +1,43 @@
 version: "3.9"
 
+networks:
+  traefik_net:
+    external: true
+  drupal_internal:
+    driver: bridge
+
+volumes:
+  drupal_data:
+  db_data:
+
 services:
-  drupal:
-    image: drupal:11-fpm
+  db:
+    image: mariadb:10.11
+    container_name: drupal-db
+    volumes:
+      - db_data:/var/lib/mysql
     environment:
-      PHP_MEMORY_LIMIT: 512M
+      - MYSQL_ROOT_PASSWORD=your_root_password
+      - MYSQL_DATABASE=drupal
+      - MYSQL_USER=drupal
+      - MYSQL_PASSWORD=your_drupal_password
+    networks:
+      - drupal_internal
+
+  drupal:
+    image: drupal:11-php8.3-fpm
+    container_name: drupal
     volumes:
       - drupal_data:/var/www/html
-      - ./config/settings.local.php:/var/www/html/web/sites/default/settings.local.php:ro
     depends_on:
       - db
+    networks:
+      - drupal_internal
+      - traefik_net
 
   nginx: 
     image: nginx:stable
+    container_name: drupal-nginx
     volumes:
       - drupal_data:/var/www/html:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
@@ -20,43 +45,18 @@ services:
       - drupal
     labels:
       - "traefik.enable=true"
-      
-      # HTTP Router (redirect to HTTPS)
       - "traefik.http.routers.drupal-http.rule=Host(`chattanooga.digital`) && PathPrefix(`/eduityblog`)"
       - "traefik.http.routers.drupal-http.entrypoints=web"
       - "traefik.http.routers.drupal-http.middlewares=redirect-to-https"
-      
-      # HTTPS Router
       - "traefik.http.routers.drupal.rule=Host(`chattanooga.digital`) && PathPrefix(`/eduityblog`)"
       - "traefik.http.routers.drupal.entrypoints=websecure"
       - "traefik.http.routers.drupal.tls=true"
       - "traefik.http.routers.drupal.tls.certresolver=letsencrypt"
       - "traefik.http.routers.drupal.middlewares=drupal-stripprefix"
-      
-      # Service
       - "traefik.http.services.drupal.loadbalancer.server.port=80"
-      
-      # Middlewares
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
       - "traefik.http.middlewares.drupal-stripprefix.stripprefix.prefixes=/eduityblog"
     networks:
-      - traefik  # Make sure this network exists
-
-  db:
-    image: mariadb:10.6
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: drupal
-      MYSQL_USER: drupal
-      MYSQL_PASSWORD: drupalpass
-    volumes:
-      - db_data:/var/lib/mysql
-
-volumes:
-  drupal_data:
-  db_data:
-
-networks:
-  traefik:
-    external: true
+      - drupal_internal
+      - traefik_net
