@@ -46,12 +46,12 @@ services:
         - "traefik.docker.network=traefik_net"
         
         # HTTP Router (redirect to HTTPS)
-        - "traefik.http.routers.eduityblog-http.rule=Host(`eduityblog.chattanooga.digital`)"
+        - "traefik.http.routers.eduityblog-http.rule=Host(`eduity.net`)"
         - "traefik.http.routers.eduityblog-http.entrypoints=web"
         - "traefik.http.routers.eduityblog-http.middlewares=redirect-to-https"
         
         # HTTPS Router
-        - "traefik.http.routers.eduityblog.rule=Host(`eduityblog.chattanooga.digital`)"
+        - "traefik.http.routers.eduityblog.rule=Host(`eduity.net`)"
         - "traefik.http.routers.eduityblog.entrypoints=websecure"
         - "traefik.http.routers.eduityblog.tls=true"
         - "traefik.http.routers.eduityblog.tls.certresolver=letsencrypt"
