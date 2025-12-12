@@ -1,4 +1,4 @@
-version: '3.9'
+version: '3.8'
 
 networks:
   traefik_net:
@@ -9,6 +9,12 @@ networks:
 volumes:
   drupal_data:
   db_data:
+
+configs:
+  nginx_conf:
+    file: ./nginx.conf
+  drupal_settings_local:
+    file: ./config/drupal/settings.local.php
 
 services:
   db:
@@ -27,7 +33,10 @@ services:
     image: drupal:11-php8.3-fpm
     volumes:
       - drupal_data:/var/www/html
-      - ./config/drupal/settings.local.php:/var/www/html/web/sites/default/settings.local.php:ro
+    configs:
+      - source: drupal_settings_local
+        target: /var/www/html/web/sites/default/settings.local.php
+        mode: 0444
     networks:
       - backend
       - traefik_net
@@ -36,7 +45,10 @@ services:
     image: nginx:stable
     volumes:
       - drupal_data:/var/www/html:ro
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    configs:
+      - source: nginx_conf
+        target: /etc/nginx/conf.d/default.conf
+        mode: 0444
     depends_on:
       - drupal
     networks:
@@ -46,21 +58,13 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.docker.network=traefik_net"
-        
-        # HTTP Router
         - "traefik.http.routers.eduity-http.rule=Host(`eduity.net`) || Host(`www.eduity.net`)"
         - "traefik.http.routers.eduity-http.entrypoints=web"
         - "traefik.http.routers.eduity-http.middlewares=redirect-to-https"
-        
-        # HTTPS Router
         - "traefik.http.routers.eduity.rule=Host(`eduity.net`) || Host(`www.eduity.net`)"
         - "traefik.http.routers.eduity.entrypoints=websecure"
         - "traefik.http.routers.eduity.tls=true"
         - "traefik.http.routers.eduity.tls.certresolver=letsencrypt"
-        
-        # Service
         - "traefik.http.services.eduity.loadbalancer.server.port=80"
-        
-        # Middlewares
         - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
         - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
