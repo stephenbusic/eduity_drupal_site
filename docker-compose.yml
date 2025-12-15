@@ -89,7 +89,7 @@ services:
   nginx:
     image: nginx:stable
     volumes:
-      - drupal_codebase:/var/www/html:ro
+      - drupal_codebase:/var/www/html
       - drupal_files:/var/www/html/web/sites/default/files:ro
     configs:
       - source: nginx_config
