@@ -26,23 +26,19 @@ services:
     working_dir: /app
     command: >
       sh -c "
-        if [ ! -f /app/web/index.php ]; then
-          echo 'Initializing Drupal codebase...';
-          cp /tmp/composer.json /tmp/composer.lock /app/;
-          composer install --no-dev --no-interaction --optimize-autoloader;
-          cp -r /tmp/src/web /app/;
-          cp -r /tmp/src/config /app/ || true;
-          chown -R www-data:www-data /app;
-        else
-          echo 'Codebase already initialized.';
-        fi
+        echo 'Deploying latest codebase from git...';
+        cp /tmp/composer.json /tmp/composer.lock /app/;
+        composer install --no-dev --no-interaction --optimize-autoloader;
+        cp -r /tmp/src/web /app/;
+        cp -r /tmp/src/config /app/ || true;
+        chown -R www-data:www-data /app;
+        echo 'Deployment complete!'
       "
     networks:
       - backend
     deploy:
       restart_policy:
-        condition: on-failure
-        max_attempts: 3
+        condition: none
 
   db:
     image: mariadb:10.11
