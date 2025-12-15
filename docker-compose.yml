@@ -20,20 +20,40 @@ services:
     image: drupal:11-php8.3-fpm
     volumes:
       - drupal_codebase:/var/www/html
-      - ./composer.json:/tmp/composer.json:ro
-      - ./composer.lock:/tmp/composer.lock:ro
-      - .:/tmp/src:ro
     working_dir: /var/www/html
+    environment:
+      GIT_REPO: https://github.com/stephenbusic/eduity_drupal_site.git
+      GIT_BRANCH: main
     command: >
       sh -c "
-        echo 'Deploying latest codebase from git...';
+        echo 'Starting deployment from git repository...';
+        apt-get update && apt-get install -y git;
+
+        if [ -d /var/www/html/.git ]; then
+          echo 'Updating existing repository...';
+          cd /var/www/html;
+          git fetch origin;
+          git reset --hard origin/$${GIT_BRANCH};
+        else
+          echo 'Cloning repository...';
+          rm -rf /var/www/html/*;
+          git clone --branch $${GIT_BRANCH} --depth 1 $${GIT_REPO} /tmp/repo;
+          mv /tmp/repo/.git /var/www/html/;
+          mv /tmp/repo/* /var/www/html/;
+          mv /tmp/repo/.[!.]* /var/www/html/ 2>/dev/null || true;
+        fi;
+
+        echo 'Installing Composer dependencies...';
         curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer;
-        cp /tmp/composer.json /tmp/composer.lock /var/www/html/;
         composer install --no-dev --no-interaction --optimize-autoloader;
-        cp -r /tmp/src/web /var/www/html/;
-        cp -r /tmp/src/config /var/www/html/ || true;
+
+        echo 'Setting permissions...';
         chown -R www-data:www-data /var/www/html;
-        echo 'Deployment complete!'
+
+        echo 'Deployment complete!';
+        echo 'Repository: $${GIT_REPO}';
+        echo 'Branch: $${GIT_BRANCH}';
+        git log -1 --oneline;
       "
     networks:
       - backend
