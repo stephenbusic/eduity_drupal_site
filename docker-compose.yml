@@ -57,7 +57,7 @@ services:
     deploy:
       labels:
         - "traefik.enable=true"
-        - "traefik.docker.network=traefik_net"
+        - "traefik.swarm.network=traefik_net"
         - "traefik.http.routers.eduity-http.rule=Host(`eduity.net`) || Host(`www.eduity.net`)"
         - "traefik.http.routers.eduity-http.entrypoints=web"
         - "traefik.http.routers.eduity-http.middlewares=redirect-to-https"
