@@ -1,0 +1,38 @@
+FROM drupal:11-php8.3-fpm
+
+# Install additional PHP extensions if needed
+# RUN docker-php-ext-install opcache
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy composer files first for better layer caching
+COPY --chown=www-data:www-data composer.json composer.lock ./
+
+# Install Composer dependencies (production only, optimized)
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --no-progress \
+    --optimize-autoloader \
+    --no-scripts
+
+# Copy the entire codebase
+COPY --chown=www-data:www-data . .
+
+# Run post-install scripts if needed
+RUN composer run-script post-install-cmd --no-interaction || true
+
+# Ensure proper permissions for specific directories
+RUN chown -R www-data:www-data /var/www/html/web/sites/default/files || true \
+    && chmod -R 775 /var/www/html/web/sites/default/files || true
+
+# Clear any development caches
+RUN rm -rf /var/www/html/web/sites/default/files/php || true
+
+# Set proper permissions for settings files (read-only for security)
+RUN chmod 444 /var/www/html/web/sites/default/settings.php || true
+
+EXPOSE 9000
+
+CMD ["php-fpm"]

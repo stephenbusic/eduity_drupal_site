@@ -8,6 +8,7 @@ networks:
 
 volumes:
   db_data:
+  drupal_files:
 
 services:
   db:
@@ -23,18 +24,21 @@ services:
       - backend
 
   drupal:
-    image: drupal:11-php8.3-fpm
+    build:
+      context: .
+      dockerfile: Dockerfile.drupal
     volumes:
-      - .:/var/www/html
+      - drupal_files:/var/www/html/web/sites/default/files
     networks:
       - backend
       - traefik_net
 
   nginx:
-    image: nginx:stable
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
     volumes:
-      - .:/var/www/html:ro
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - drupal_files:/var/www/html/web/sites/default/files:ro
     depends_on:
       - drupal
     networks:
