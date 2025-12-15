@@ -19,20 +19,20 @@ services:
   init:
     image: drupal:11-php8.3-fpm
     volumes:
-      - drupal_codebase:/app
+      - drupal_codebase:/var/www/html
       - ./composer.json:/tmp/composer.json:ro
       - ./composer.lock:/tmp/composer.lock:ro
       - .:/tmp/src:ro
-    working_dir: /app
+    working_dir: /var/www/html
     command: >
       sh -c "
         echo 'Deploying latest codebase from git...';
         curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer;
-        cp /tmp/composer.json /tmp/composer.lock /app/;
+        cp /tmp/composer.json /tmp/composer.lock /var/www/html/;
         composer install --no-dev --no-interaction --optimize-autoloader;
-        cp -r /tmp/src/web /app/;
-        cp -r /tmp/src/config /app/ || true;
-        chown -R www-data:www-data /app;
+        cp -r /tmp/src/web /var/www/html/;
+        cp -r /tmp/src/config /var/www/html/ || true;
+        chown -R www-data:www-data /var/www/html;
         echo 'Deployment complete!'
       "
     networks:
