@@ -1,7 +1,50 @@
+# Ignore DDEV local environment
 .ddev
+
+# Ignore configuration files that may contain sensitive information
 .editorconfig
+
+# Ignore Composer-managed dependencies
 recipes/
 vendor/
-web/
-CLAUDE.md
+
+# Ignore Drupal core
+web/core/
+
+# Ignore contributed modules, themes, profiles, and libraries
+web/modules/contrib/
+web/themes/contrib/
+web/profiles/contrib/
+web/libraries/
+
+# Ignore files directories (user uploads)
+web/sites/*/files/
+web/sites/*/private/
+
+# Ignore local settings files
+web/sites/*/settings.local.php
+web/sites/*/settings.ddev.php
+web/sites/*/services.local.yml
+
+# Ignore SimpleTest multi-site environment
+web/sites/simpletest/
+
+# Ignore Drupal's file cache directories
+web/sites/default/files/php/
+web/sites/default/files/js/
+web/sites/default/files/css/
+web/sites/default/files/styles/
+
+# Ignore paths that may contain user-generated content
+backup/
+files-backup/
+
+# Ignore system files
 .DS_Store
+Thumbs.db
+
+# Note: Custom modules, themes, and profiles ARE committed
+# Located in:
+# - web/modules/custom/
+# - web/themes/custom/
+# - web/profiles/custom/
