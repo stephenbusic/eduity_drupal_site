@@ -17,7 +17,7 @@ volumes:
 
 services:
   init:
-    image: composer:latest
+    image: drupal:11-php8.3-fpm
     volumes:
       - drupal_codebase:/app
       - ./composer.json:/tmp/composer.json:ro
@@ -27,6 +27,7 @@ services:
     command: >
       sh -c "
         echo 'Deploying latest codebase from git...';
+        curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer;
         cp /tmp/composer.json /tmp/composer.lock /app/;
         composer install --no-dev --no-interaction --optimize-autoloader;
         cp -r /tmp/src/web /app/;
