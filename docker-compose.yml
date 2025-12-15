@@ -47,6 +47,9 @@ services:
         curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer;
         composer install --no-dev --no-interaction --optimize-autoloader;
 
+        echo 'Creating directory structure...';
+        mkdir -p /var/www/html/web/sites/default/files;
+
         echo 'Setting permissions...';
         chown -R www-data:www-data /var/www/html;
 
