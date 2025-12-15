@@ -83,8 +83,10 @@ services:
       - drupal_files:/var/www/html/web/sites/default/files
     working_dir: /var/www/html
     networks:
-      - backend
-      - traefik_net
+      backend:
+        aliases:
+          - drupal
+      traefik_net:
 
   nginx:
     image: nginx:stable
