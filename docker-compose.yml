@@ -6,11 +6,44 @@ networks:
   backend:
     driver: overlay
 
+configs:
+  nginx_config:
+    file: ./nginx.conf
+
 volumes:
   db_data:
   drupal_files:
+  drupal_codebase:
 
 services:
+  init:
+    image: composer:latest
+    volumes:
+      - drupal_codebase:/app
+      - ./composer.json:/tmp/composer.json:ro
+      - ./composer.lock:/tmp/composer.lock:ro
+      - .:/tmp/src:ro
+    working_dir: /app
+    command: >
+      sh -c "
+        if [ ! -f /app/web/index.php ]; then
+          echo 'Initializing Drupal codebase...';
+          cp /tmp/composer.json /tmp/composer.lock /app/;
+          composer install --no-dev --no-interaction --optimize-autoloader;
+          cp -r /tmp/src/web /app/;
+          cp -r /tmp/src/config /app/ || true;
+          chown -R www-data:www-data /app;
+        else
+          echo 'Codebase already initialized.';
+        fi
+      "
+    networks:
+      - backend
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+
   db:
     image: mariadb:10.11
     volumes:
@@ -24,21 +57,23 @@ services:
       - backend
 
   drupal:
-    build:
-      context: .
-      dockerfile: Dockerfile.drupal
+    image: drupal:11-php8.3-fpm
     volumes:
+      - drupal_codebase:/var/www/html
       - drupal_files:/var/www/html/web/sites/default/files
+    working_dir: /var/www/html
     networks:
       - backend
       - traefik_net
 
   nginx:
-    build:
-      context: .
-      dockerfile: Dockerfile.nginx
+    image: nginx:stable
     volumes:
+      - drupal_codebase:/var/www/html:ro
       - drupal_files:/var/www/html/web/sites/default/files:ro
+    configs:
+      - source: nginx_config
+        target: /etc/nginx/conf.d/default.conf
     depends_on:
       - drupal
     networks:
