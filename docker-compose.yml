@@ -29,6 +29,8 @@ services:
         echo 'Starting deployment from git repository...';
         apt-get update && apt-get install -y git;
 
+        git config --global --add safe.directory '*';
+
         if [ -d /var/www/html/.git ]; then
           echo 'Updating existing repository...';
           cd /var/www/html;
@@ -50,13 +52,13 @@ services:
         echo 'Creating directory structure...';
         mkdir -p /var/www/html/web/sites/default/files;
 
-        echo 'Setting permissions...';
-        chown -R www-data:www-data /var/www/html;
-
         echo 'Deployment complete!';
         echo 'Repository: $${GIT_REPO}';
         echo 'Branch: $${GIT_BRANCH}';
         git log -1 --oneline;
+
+        echo 'Setting permissions...';
+        chown -R www-data:www-data /var/www/html;
       "
     networks:
       - backend
