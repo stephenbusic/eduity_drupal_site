@@ -1,6 +1,10 @@
 # Ignore DDEV local environment
 .ddev
 
+# Ignore local-only Traefik configuration
+docker-compose.traefik-local.yml
+traefik-local-certs/
+
 # Ignore configuration files that may contain sensitive information
 .editorconfig
 
