@@ -65,14 +65,13 @@ services:
         condition: none
 
   db:
-    image: mariadb:10.11
+    image: postgres:16
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/var/lib/postgresql/data
     environment:
-      MYSQL_ROOT_PASSWORD: your_root_password
-      MYSQL_DATABASE: drupal
-      MYSQL_USER: drupal
-      MYSQL_PASSWORD: your_drupal_password
+      POSTGRES_DB: drupal
+      POSTGRES_USER: drupal
+      POSTGRES_PASSWORD: your_drupal_password
     networks:
       - backend
 
