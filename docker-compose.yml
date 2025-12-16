@@ -112,7 +112,7 @@ services:
         - "traefik.http.routers.eduity.rule=Host(`eduity.net`) || Host(`www.eduity.net`)"
         - "traefik.http.routers.eduity.entrypoints=websecure"
         - "traefik.http.routers.eduity.tls=true"
-        - "traefik.http.routers.eduity.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.eduity.tls.certresolver=le"
         - "traefik.http.services.eduity.loadbalancer.server.port=80"
         - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
         - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
